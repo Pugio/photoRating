@@ -1,0 +1,70 @@
+<!doctype html>
+
+<html>
+
+    <head> 
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /> 
+	    <title>Photo Rating Application</title>
+		<style>
+		   
+		div {
+				
+		    padding: 10px;
+		    border-style: solid;
+		    border-color: gray;
+		    border-width: 1px;
+		    }
+		
+		h1 {
+		    color: green;
+		    text-align: center;
+		    }
+
+		p  {
+		    font-family: "Georgia";
+		    font-size: 16px;
+		    color: green;
+		    }
+
+		img {
+		    margin: 10px;
+		    border-color: gray;
+		    }
+
+		</style>
+    
+    </head>
+    
+    <body>
+		<div>
+		    <h1>Photo Rating Application</h1>
+		    <p>flickr Gallery ID:</p>
+		    <input type="text" id="galleryId" value="66911286-72157648938486365"/> <br />
+		    <button id="loadGallery">Load Gallery</button>
+		</div>
+		<div>		
+			<img id="mainImage" src="" /><br />
+		</div>
+		<div>
+			<button id="previous">Previous</button><button id="next">Next</button>
+		</div>
+		<form method="post" action="" name="photoRating">
+		    <p>Rating:</p>
+		    <input type="radio" name="rate" id="one">1</input>
+		    <input type="radio" name="rate" id="two">2</input>
+		    <input type="radio" name="rate" id="three">3</input>
+		    <input type="radio" name="rate" id="four">4</input>
+		    <input type="radio" name="rate" id="five">5</input> <br /> <br /> <br />
+		
+		    <p>Tags:</p>
+		    <input type="text" id="tagField" value=""/> <br /> <br />
+		    <p>Comments:</p>
+		    <textarea cols="40"  rows= "5" name="commentsField"> </textarea> <br />
+		</form>
+		<div>
+			<button id="saveChanges">Save Changes</button>
+		</div>
+		<script src="photoRating.js"></script>
+    </body>
+
+</html>
