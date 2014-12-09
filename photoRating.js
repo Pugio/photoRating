@@ -11,14 +11,14 @@ var photosIndexGlobal; // global variable indicating index of currently displaye
  */
 
 
-function loadGallery() {  
+function loadGallery() {
     var apiKey = "9680bf8a4eec0bec89bc3ce62a0fd63e";
     //"4614318815763a761d681e7ca2e3847e";
     var galleryId = document.getElementById("galleryId").value;
 
     // The API call to flickr. For more info, visit: http://www.flickr.com/services/api/
     // When the flickr server responds, the "receiveFlickrResponse" function (below) will
-    // be called automatically. 
+    // be called automatically.
     var url = "https://api.flickr.com/services/rest/?method=flickr.galleries.getPhotos&api_key=" + apiKey + "&format=json&gallery_id=" + galleryId + "&jsoncallback=receiveFlickrResponse";
     var script = document.createElement("script");
     script.src = url;
@@ -26,53 +26,47 @@ function loadGallery() {
     document.body.appendChild(script);
 }
 
-function PhotoMetadata(URL) {
-    this.URL = URL;
-    this.rating = document.getElementById("three").checked = true; 
+function PhotoMetadata(photo) {
+    // Do NOT change how the image URL is constructed. URL form for location of a flickr image:
+    // http://farm{id}.static.flickr.com/{server-id}/{id}_{secret}_[mstb].jpg
+
+    this.URL   = "https://farm" + photo.farm + ".static.flickr.com/" + photo.server + "/" + photo.id + "_" + photo.secret + ".jpg";
+    this.photo = photo;
+    this.rating = 3; // default
     this.comment = "";
-    this.tags = [];
-        this.saveTagsFromString = function(str) {
-        return str.split("");
-        }
+    this.tags = "";
 }
+
+PhotoMetadata.prototype.saveTagsFromString = function(str) {
+    this.tags = str;
+};
 
 /*
  * This function runs when the flickr server responds with data. The data object is passed to
  * the parameter 'response', which we can process.
- * 
+ *
  * For the assignment, modify this function so that instead of storing the URL for each picture in the
  * photosArrayGlobal, the function creates a PhotoMetadata object and stores that in photosArrayGlobal
  */
-function receiveFlickrResponse(response) { 
-    var parsedData = response;   
-    var photo;
-    var url;
-    var i;
+function receiveFlickrResponse(response) {
     photosArrayGlobal = [];
-
-    // Build the location URL for each photo in the response
-    for (i = 0; i < parsedData.photos.photo.length; i++) {
-        photo = parsedData.photos.photo[i]; 
-        
-        // Do NOT change how the image URL is constructed. URL form for location of a flickr image:
-        // http://farm{id}.static.flickr.com/{server-id}/{id}_{secret}_[mstb].jpg
-        url = "https://farm" + photo.farm + ".static.flickr.com/" + photo.server + "/" + photo.id + "_" + photo.secret + ".jpg";
-        photosArrayGlobal[i] = new PhotoMetadata(url);
-       
-    }   
-
     photosIndexGlobal = 0;
+
+    photosArrayGlobal = response.photos.photo.map(function (photo) { return new PhotoMetadata(photo); });
+
     return displayCurrentPhoto();
-    
 }
 
 /*
  * Creates a new array of all of URL properties in photosArrayGlobal, called displayPhoto
- * Displays the photo at photosIndexGlobal in the displayPhoto array. 
+ * Displays the photo at photosIndexGlobal in the displayPhoto array.
  */
 function displayCurrentPhoto() {
-    var displayPhoto = photosArrayGlobal.map (function (o) {return o.URL})
-    document.getElementById("mainImage").src = displayPhoto[photosIndexGlobal];
+    var photoMetaData = currentPhoto();
+    document.getElementById("mainImage").src       = photoMetaData.URL;
+    document.getElementById("commentsField").value = photoMetaData.comment;
+    document.getElementById("tagField").value      = photoMetaData.tags;
+    setRating(photoMetaData.rating);
 }
 
 /*
@@ -101,41 +95,36 @@ function previous() {
     displayCurrentPhoto();
 }
 
-function onSaveChangesButtonClick() {
-    var tagArray = document.getElementById("tagField").value
-    var tagArrayShow = photosArrayGlobal.map (function (t) {return t.tags});
-    tagArrayShow[photosIndexGlobal] = tagArray;
-    //photosArrayGlobal[photosIndexGlobal].tags = tagArray;
-//above saves the tags and keeps the same one for each photo, does not change back to blank
-    var commentsString = document.getElementsByName("commentsField").value
-    var commentsStringShow = photosArrayGlobal.map (function(c) {return c.comment});
-    commentsStringShow[photosIndexGlobal] = commentsString;
-    //photosArrayGlobal[photosIndexGlobal].comment = commentsString;
-    var rateShow = photosArrayGlobal.map (function (r) {return r.rating});
-    if (document.getElementById("one").checked === true) {
-        rateShow[photosIndexGlobal] = document.getElementById("one").checked = true
-    }
-    else if (document.getElementById("two").check === true) {
-        rateShow[photosIndexGlobal] = document.getElementById("two").checked = true
-    }
-    else if (document.getElementById("three").check === true) {
-        rateShow[photosIndexGlobal] = document.getElementById("three").checked = true
-    }
-    else if (document.getElementById("four").check === true) {
-        rateShow[photosIndexGlobal] = document.getElementById("four").checked = true
-    }
-    else if (document.getElementById("five").check === true) {
-        rateShow[photosIndexGlobal] = document.getElementById("five").checked = true
-    }
+function currentPhoto() {
+    return photosArrayGlobal[photosIndexGlobal];
 }
-    //test to see which radio button is clicked, then set the new value to the object
-    //get value of getElementByName("commentsField")and getElementById("tagField")
+
+// returns the currently selected rating
+
+function currentRating() {
+    var rateButtons = document.getElementsByName("rate");
+    for (var i = 0; i < rateButtons.length; i++)
+        if (rateButtons[i].checked) // the checked property will either be true or false
+            return i+1;             // the array is 0-indexed, but we start our ratings at 1, so add 1
+}
+
+function setRating(rating) {
+    document.getElementsByName("rate")[rating-1].checked = true; // remember to convert a rating into a 0-indexed array index by subtracting 1
+}
+
+function onSaveChangesButtonClick() {
+    var photoMetaData = currentPhoto();
+
+    photoMetaData.saveTagsFromString(document.getElementById("tagField").value);
+    photoMetaData.comment = document.getElementById("commentsField").value;
+    photoMetaData.rating  = currentRating();
+}
 
 /*
  * Initialization code
  */
 window.onload = function() {
-    
+
     // Set up event handlers
     document.getElementById("next").onclick = next;
     document.getElementById("previous").onclick = previous;
